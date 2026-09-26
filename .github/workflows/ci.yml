@@ -37,6 +37,8 @@ jobs:
           python-version: '3.12'
       - run: make setup up
       - run: make test-integration demo attack-lab
+        env:
+          PYTEST_ADDOPTS: -rP # Retain topology and TCP-probe evidence on successful runs too.
       - run: docker compose ps
       - if: always()
         run: make clean
