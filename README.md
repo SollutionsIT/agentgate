@@ -2,7 +2,13 @@
 
 **Zero-trust security gateway for AI agent-to-agent communication.**
 
-AgentGate is a security-first policy enforcement layer built for autonomous AI agents, tools and services.
+
+<p align="center">
+  <img src="./agentgate.gif" alt="Sollutions AgentGate demo" width="100%">
+</p>
+
+
+AgentGate is a security-first policy-enforcement layer built for autonomous AI agents, tools, and services.
 Every protected interaction is authenticated, explicitly authorized, policy-evaluated and auditable.
 
 AgentGate brings Zero-Trust authorization, capability-based access control and policy-as-code to agent-to-agent communication.
