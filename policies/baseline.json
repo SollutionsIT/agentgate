@@ -1,0 +1,8 @@
+{
+  "travel-agent": ["booking.search", "weather.read"],
+  "weather-agent": ["system.health.read"],
+  "finance-agent": ["finance.balance.read", "finance.transfer.request"],
+  "admin-agent": ["booking.create", "booking.search", "finance.balance.read", "finance.transfer.request", "profile.read", "profile.update", "system.admin", "system.health.read", "weather.read"],
+  "planner-agent": ["booking.search"],
+  "unknown-agent": []
+}

@@ -1,0 +1,100 @@
+name: agentgate
+
+x-app: &app
+  build: .
+  image: agentgate:local
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 128
+  mem_limit: 256m
+  tmpfs: ["/tmp:size=16m,mode=1777"]
+
+services:
+  gateway:
+    <<: *app
+    networks: [edge, control, weather-net, finance-net]
+    ports: ["127.0.0.1:8080:8080"]
+    environment:
+      AGENTGATE_PUBLIC_KEY_PATH: /run/keys/public.pem
+      AGENTGATE_RATE_LIMIT: "30"
+      AGENTGATE_RATE_WINDOW: "60"
+    volumes:
+      - ./.local/keys/public.pem:/run/keys/public.pem:ro
+    depends_on:
+      opa: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      weather: {condition: service_healthy}
+      finance: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/ready', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+  opa:
+    image: openpolicyagent/opa:1.21.0-static@sha256:9eb36ac3ceb3b855e776e60926a8a5142f96109a219a5fcd490fa1744c755bec
+    user: "10001:10001"
+    command: [run, --server, --addr=0.0.0.0:8181, --log-level=error, /policies/agentgate.rego]
+    volumes: ["./policies:/policies:ro"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 256m
+    networks: [control]
+    healthcheck:
+      test: [CMD, /opa, eval, --fail, --data, /policies/agentgate.rego, data.agentgate.ready]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+  redis:
+    image: redis:8-alpine@sha256:3811787313eba226a2ef38658c6ccb91cd5e110edc89c37767de373120a0e5a0
+    user: redis
+    read_only: true
+    command: [redis-server, --appendonly, "yes", --appendfsync, always, --maxmemory, 64mb, --maxmemory-policy, noeviction]
+    volumes: [redis-state:/data]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 128m
+    networks: [control]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  weather:
+    <<: *app
+    networks: [weather-net]
+    environment: {DEMO_SERVICE: weather}
+    command: [uvicorn, examples.services:app, --host, 0.0.0.0, --port, "8001", --no-access-log]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  finance:
+    <<: *app
+    networks: [finance-net]
+    environment: {DEMO_SERVICE: finance}
+    command: [uvicorn, examples.services:app, --host, 0.0.0.0, --port, "8001", --no-access-log]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+networks:
+  edge:
+    driver_opts: {com.docker.network.bridge.name: ag-edge}
+  control:
+    internal: true
+    driver_opts: {com.docker.network.bridge.name: ag-control}
+  weather-net:
+    internal: true
+    driver_opts: {com.docker.network.bridge.name: ag-weather}
+  finance-net:
+    internal: true
+    driver_opts: {com.docker.network.bridge.name: ag-finance}
+volumes:
+  redis-state:

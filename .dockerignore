@@ -1,0 +1,12 @@
+.git
+.agents
+.codex
+.venv
+.bootstrap
+.local
+**/__pycache__
+.*_cache
+.env
+*.pem
+*.key
+dist
