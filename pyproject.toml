@@ -21,7 +21,7 @@ agentgate = "agentgate.cli:app"
 agentgate-redteam = "agentgate.lab:app"
 
 [dependency-groups]
-dev = ["pytest>=8.3,<10", "pytest-asyncio>=0.25,<2", "ruff>=0.9,<1", "mypy>=1.15,<2", "pip-audit>=2.8,<3", "build>=1.2,<2", "twine>=6,<8"]
+dev = ["pytest>=8.3,<10", "pytest-asyncio>=0.25,<2", "ruff>=0.9,<1", "mypy>=1.15,<3", "pip-audit>=2.8,<3", "build>=1.2,<2", "twine>=6,<8"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentgate"]
