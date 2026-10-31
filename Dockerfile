@@ -1,11 +1,11 @@
-FROM python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f AS build
+FROM python:3.15-slim@sha256:94d3426f1def7db4a106a232ac121bfd975393e5dfd40a619b955fae45fe7913 AS build
 WORKDIR /build
 RUN pip install --no-cache-dir uv==0.12.19
 COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src ./src
 RUN uv sync --frozen --no-dev --no-editable --compile-bytecode
 
-FROM python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+FROM python:3.15-slim@sha256:94d3426f1def7db4a106a232ac121bfd975393e5dfd40a619b955fae45fe7913
 RUN groupadd --gid 10001 agentgate && useradd --uid 10001 --gid agentgate --no-create-home agentgate
 WORKDIR /app
 COPY --from=build /build/.venv /build/.venv
